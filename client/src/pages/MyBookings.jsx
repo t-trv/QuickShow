@@ -3,6 +3,7 @@ import BlurCirle from '../components/BlurCircle';
 import timeFormat from '../libs/timeFormat';
 import { dateFormat } from '../libs/dateFormat';
 import { useAppContext } from '../context/AppContext';
+import { Link } from 'react-router-dom';
 
 function MyBookings() {
     const currency = import.meta.env.VITE_CURRENCY;
@@ -15,6 +16,8 @@ function MyBookings() {
         const { data } = await axios.get('/api/user/bookings', {
             headers: { Authorization: `Bearer ${await getToken()}` },
         });
+
+        console.log(data);
 
         if (data.success) {
             setBookings(data.bookings);
@@ -58,9 +61,12 @@ function MyBookings() {
                         <div className="flex items-center gap-4">
                             <p className="text-2xl font-semibold mb-3">{`${currency}${item.amount}`}</p>
                             {!item.isPaid && (
-                                <button className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer">
+                                <Link
+                                    to={item.paymentLink}
+                                    className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
+                                >
                                     Pay Now
-                                </button>
+                                </Link>
                             )}
                         </div>
                         <div className="text-sm">

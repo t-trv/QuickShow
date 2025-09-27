@@ -14,6 +14,9 @@ import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 const app = express();
 const port = 3000;
 
+// Strip webhook route
+app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
+
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -26,9 +29,6 @@ app.use(
 
 // Connect DB
 await connectDB().then();
-
-// Strip webhook route
-app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
 
 // API Routes
 app.get('/', (req, res) => {

@@ -42,6 +42,8 @@ export const createBooking = async (req, res) => {
             bookedSeats: selectedSeats,
         });
 
+        console.log(booking);
+
         selectedSeats.map((seat) => {
             showData.occupiedSeats[seat] = userId;
         });
@@ -80,6 +82,8 @@ export const createBooking = async (req, res) => {
         booking.paymentLink = session.url;
         await booking.save();
 
+        console.log(booking);
+
         res.json({ success: true, url: session.url });
     } catch (error) {
         console.log(error.message);
@@ -92,7 +96,6 @@ export const getOccupiedSeats = async (req, res) => {
         const { showId } = req.params;
         const showData = await Show.findById(showId);
         const occupiedSeats = Object.keys(showData.occupiedSeats);
-        console.log(showId, showData);
 
         res.json({ success: true, occupiedSeats });
     } catch (error) {
