@@ -4,6 +4,7 @@ import Title from '../../components/admin/Title';
 import { CheckIcon, Delete, StarIcon } from 'lucide-react';
 import { kConverter } from '../../libs/kConverter';
 import toast from 'react-hot-toast';
+import { useAppContext } from '../../context/AppContext';
 
 function AddShows() {
     const currency = import.meta.env.VITE_CURRENCY;
@@ -12,9 +13,24 @@ function AddShows() {
     const [dateTimeSelection, setDateTimeSelection] = useState({});
     const [dateTimeInput, setDateTimeInput] = useState('');
     const [showPrice, setShowPrice] = useState('');
+    const [addingShow, setAddingShow] = useState(false);
+
+    const { axios, user, getToken, img_base_url } = useAppContext();
 
     const fetchNowPlayingMovies = async () => {
-        setNowPlayingMovies(dummyShowsData);
+        try {
+            const { data } = await axios.get('/api/show/now-playing', {
+                headers: {
+                    Authorization: `Bearer ${await getToken()}`,
+                },
+            });
+
+            if (data.success) {
+                setNowPlayingMovies(data.movies);
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const handleDateTimeAdd = () => {
@@ -48,9 +64,52 @@ function AddShows() {
         });
     };
 
+    const hanldeSubmit = async () => {
+        try {
+            setAddingShow(true);
+
+            if (!selectedMovie || Object.keys(dateTimeSelection).length === 0 || !showPrice) {
+                return toast.error('Missing required field!');
+            }
+
+            const showsInput = Object.entries(dateTimeSelection).map(([date, time]) => ({
+                date,
+                time,
+            }));
+
+            const payload = {
+                movieId: selectedMovie,
+                showsInput,
+                showPrice: Number(showPrice),
+            };
+
+            console.log(payload);
+
+            const { data } = await axios.post('/api/show/add', payload, {
+                headers: { Authorization: `Bearer ${await getToken()}` },
+            });
+
+            if (data.success) {
+                toast.success(data.message);
+                setSelectedMovie(null);
+                setDateTimeSelection({});
+                setShowPrice('');
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.log('Submission error: ', error);
+            toast.error('Submission error, please try again!');
+        }
+
+        setAddingShow(false);
+    };
+
     useEffect(() => {
-        fetchNowPlayingMovies();
-    }, []);
+        if (user) {
+            fetchNowPlayingMovies();
+        }
+    }, [user]);
 
     return nowPlayingMovies.length > 0 ? (
         <>
@@ -61,13 +120,13 @@ function AddShows() {
                 <div className="group flex flex-wrap gap-4 mt-4 w-max">
                     {nowPlayingMovies.map((movie) => (
                         <div
-                            onClick={() => setSelectedMovie(movie._id)}
-                            key={movie._id}
+                            onClick={() => setSelectedMovie(movie.id)}
+                            key={movie.id}
                             className="relative max-w-40 cursor-pointer group-hover:not-hover:opacity-40 hover:-translate-y-1 transition duration-300 "
                         >
                             <div className="relative rounded-lg overflow-hidden">
                                 <img
-                                    src={movie.poster_path}
+                                    src={`${img_base_url}${movie.poster_path}`}
                                     alt="Show image"
                                     className="w-full object-cover brightness-90"
                                 />
@@ -79,7 +138,7 @@ function AddShows() {
                                     <p className="text-gray-300">{kConverter(movie.vote_count)} Votes</p>
                                 </div>
                             </div>
-                            {selectedMovie === movie._id && (
+                            {selectedMovie === movie.id && (
                                 <div className="absolute top-2 right-2 flex items-center justify-center bg-primary h-6 w-6 rounded">
                                     <CheckIcon className="w-4 h-4 text-white" strokeWidth={3} />
                                 </div>
@@ -140,7 +199,10 @@ function AddShows() {
                                 <div className="font-medium">{date}</div>
                                 <div className="flex flex-wrap gap-2 mt-1 text-sm">
                                     {times.map((time) => (
-                                        <div className="border border-primary px-2 py-1 flex items-center rounded">
+                                        <div
+                                            key={time}
+                                            className="border border-primary px-2 py-1 flex items-center rounded"
+                                        >
                                             <span>{time}</span>
                                             <Delete
                                                 onClick={() => handleRemoveTime(date, time)}
@@ -157,7 +219,11 @@ function AddShows() {
                 </div>
             )}
 
-            <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer">
+            <button
+                onClick={hanldeSubmit}
+                disabled={addingShow}
+                className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer"
+            >
                 Add Show
             </button>
         </>

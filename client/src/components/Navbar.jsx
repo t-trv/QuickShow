@@ -3,12 +3,15 @@ import { assets } from '../assets/assets';
 import { MenuIcon, SearchIcon, TicketPlus, TicketPlusIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useUser, SignedIn, SignedOut, SignInButton, UserButton, useClerk } from '@clerk/clerk-react';
+import { useAppContext } from '../context/AppContext';
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const { user } = useUser();
     const { openSignIn } = useClerk();
     const navigate = useNavigate();
+
+    const { favouriteMovies } = useAppContext();
 
     return (
         <div className="fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5">
@@ -46,7 +49,7 @@ function Navbar() {
                 >
                     Movies
                 </Link>
-                {/* <Link
+                <Link
                     onClick={() => {
                         setIsOpen(false);
                         scrollTo(0, 0);
@@ -54,7 +57,7 @@ function Navbar() {
                     to={'/'}
                 >
                     Theaters
-                </Link> */}
+                </Link>
                 <Link
                     onClick={() => {
                         setIsOpen(false);
@@ -64,15 +67,17 @@ function Navbar() {
                 >
                     Releases
                 </Link>
-                <Link
-                    onClick={() => {
-                        setIsOpen(false);
-                        scrollTo(0, 0);
-                    }}
-                    to={'/favourite'}
-                >
-                    Favourite
-                </Link>
+                {favouriteMovies.length > 0 && (
+                    <Link
+                        onClick={() => {
+                            setIsOpen(false);
+                            scrollTo(0, 0);
+                        }}
+                        to={'/favourite'}
+                    >
+                        Favourites
+                    </Link>
+                )}
             </div>
 
             {/* Thanh tìm kiếm & login */}

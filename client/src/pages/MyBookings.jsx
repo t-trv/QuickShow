@@ -1,22 +1,32 @@
 import { useEffect, useState } from 'react';
-import { dummyBookingData } from '../assets/assets';
 import BlurCirle from '../components/BlurCircle';
 import timeFormat from '../libs/timeFormat';
 import { dateFormat } from '../libs/dateFormat';
+import { useAppContext } from '../context/AppContext';
 
 function MyBookings() {
     const currency = import.meta.env.VITE_CURRENCY;
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const { axios, user, img_base_url, getToken } = useAppContext();
+
     const getMyBookings = async () => {
-        setBookings(dummyBookingData);
-        setIsLoading(false);
+        const { data } = await axios.get('/api/user/bookings', {
+            headers: { Authorization: `Bearer ${await getToken()}` },
+        });
+
+        if (data.success) {
+            setBookings(data.bookings);
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
-        getMyBookings();
-    }, []);
+        if (user) {
+            getMyBookings();
+        }
+    }, [user]);
 
     return !isLoading ? (
         <div className="relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]">
@@ -34,7 +44,7 @@ function MyBookings() {
                 >
                     <div className="flex flex-col md:flex-row">
                         <img
-                            src={item.show.movie.poster_path}
+                            src={img_base_url + item.show.movie.poster_path}
                             alt=""
                             className="md:max-w-45 aspect-video h-auto object-cover object-bottom rounded"
                         />

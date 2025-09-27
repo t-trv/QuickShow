@@ -5,9 +5,12 @@ import Loading from '../../components/Loading';
 import Title from '../../components/admin/Title';
 import BlurCircle from '../../components/BlurCircle';
 import { dateFormat } from '../../libs/dateFormat';
+import { useAppContext } from '../../context/AppContext';
 
 function Dashboard() {
     const currency = import.meta.env.VITE_CURRENCY;
+
+    const { axios, user, getToken, img_base_url } = useAppContext();
 
     const [dashboardData, setDashboardData] = useState({
         totalBookings: 0,
@@ -26,13 +29,29 @@ function Dashboard() {
     ];
 
     const fetchDashboardData = async () => {
-        setDashboardData(dummyDashboardData);
+        try {
+            const { data } = await axios.get('/api/admin/dashboard', {
+                headers: {
+                    Authorization: `Bearer ${await getToken()}`,
+                },
+            });
+            if (data.success) {
+                setDashboardData(data.dashboardData);
+                setLoading(false);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchDashboardData();
-    }, []);
+        if (user) {
+            fetchDashboardData();
+        }
+    }, [user]);
 
     return !loading ? (
         <>
@@ -63,7 +82,11 @@ function Dashboard() {
                         key={index}
                         className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
                     >
-                        <img src={show.movie.poster_path} alt="Show's poster" className="h-60 w-full object-cover" />
+                        <img
+                            src={img_base_url + show.movie.poster_path}
+                            alt="Show's poster"
+                            className="h-60 w-full object-cover"
+                        />
                         <p className="font-medium p-2 truncate">{show.movie.title}</p>
                         <div className="flex items-center justify-between px-2">
                             <p className="text-lg font-medium">
