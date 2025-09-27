@@ -2,14 +2,16 @@ import Stripe from 'stripe';
 import Booking from '../models/Booking.js';
 
 export const stripeWebhooks = async (req, res) => {
-    console.log('da chay vao webhooks');
+    console.log('👉 Đã nhận request từ Stripe');
+    console.log('Headers:', req.headers);
+    console.log('Raw body:', req.body.toString());
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers['stripe-signature'];
 
     let event;
 
     try {
-        event = stripInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (error) {
         return res.status(400).send(`Webhook error: ${error.message}`);
     }
