@@ -14,6 +14,8 @@ import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 const app = express();
 const port = 3000;
 
+console.log('===============STARTING SERVER===============');
+
 // Strip webhook route
 app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhooks);
 
@@ -26,6 +28,12 @@ app.use(
         secretKey: process.env.CLERK_SECRET_KEY,
     }),
 );
+
+console.log('check env', {
+    SMTP_USER: !!process.env.SMTP_USER,
+    SMTP_PASS: !!process.env.SMTP_PASS,
+    SENDER_EMAIL: process.env.SENDER_EMAIL,
+});
 
 // Connect DB
 await connectDB().then();
