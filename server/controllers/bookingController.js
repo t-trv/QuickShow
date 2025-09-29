@@ -43,8 +43,6 @@ export const createBooking = async (req, res) => {
             bookedSeats: selectedSeats,
         });
 
-        console.log(booking);
-
         selectedSeats.map((seat) => {
             showData.occupiedSeats[seat] = userId;
         });
